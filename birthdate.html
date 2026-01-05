@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>生年月日入力</title>
+</head>
+<body>
+
+<label>生年月日を入力してください</label><br>
+<input
+  id="birthdate"
+  type="text"
+  inputmode="numeric"
+  placeholder="例）1980/2/11 または 1980-2-11"
+>
+<br><br>
+<button onclick="onSubmitBirthdate()">決定</button>
+
+<script>
+// ==== あなたの既存コード ====
+function parseBirthdate(text) {
+  const t = (text || "").replace(/\u3000/g, " ").trim();
+
+  let m = t.match(/(19\d{2}|20\d{2})\s*年\s*(\d{1,2})\s*月\s*(\d{1,2})\s*日/);
+  if (m) {
+    const y = Number(m[1]);
+    const mo = Number(m[2]);
+    const d = Number(m[3]);
+    if (isValidDateParts(y, mo, d)) return { y, m: mo, d };
+  }
+
+  m = t.match(/(19\d{2}|20\d{2})\s*[\/\-.]\s*(\d{1,2})\s*[\/\-.]\s*(\d{1,2})/);
+  if (m) {
+    const y = Number(m[1]);
+    const mo = Number(m[2]);
+    const d = Number(m[3]);
+    if (isValidDateParts(y, mo, d)) return { y, m: mo, d };
+  }
+
+  return null;
+}
+
+function isValidDateParts(y, mo, d) {
+  const dt = new Date(y, mo - 1, d);
+  return (
+    dt.getFullYear() === y &&
+    dt.getMonth() === mo - 1 &&
+    dt.getDate() === d
+  );
+}
+
+// ==== 送信処理 ====
+function onSubmitBirthdate() {
+  const raw = document.getElementById("birthdate").value;
+  const parsed = parseBirthdate(raw);
+
+  if (!parsed) {
+    alert("生年月日を正しく入力してください");
+    return;
+  }
+
+  const y = parsed.y;
+  const m = String(parsed.m).padStart(2, "0");
+  const d = String(parsed.d).padStart(2, "0");
+  const normalized = `${y}-${m}-${d}`;
+
+  alert("受け取った生年月日：" + normalized);
+
+  // 👉 ここでWebhook送信・次の質問へ
+}
+</script>
+
+</body>
+</html>

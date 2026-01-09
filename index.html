@@ -1,1 +1,43 @@
-<meta http-equiv="refresh" content="0; url=./birthdate.html">
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>生年月日入力</title>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+</head>
+<body>
+  <h2>生年月日を入力してください</h2>
+
+  <input type="date" id="birthdate" />
+  <br><br>
+  <button onclick="submitBirthdate()">決定</button>
+
+  <script>
+    async function submitBirthdate() {
+      const birthday = document.getElementById("birthdate").value;
+      if (!birthday) {
+        alert("生年月日を入力してください");
+        return;
+      }
+
+      await liff.init({ liffId: "ここにあなたのLIFF ID" });
+
+      if (!liff.isLoggedIn()) {
+        liff.login();
+        return;
+      }
+
+      await liff.sendMessages([
+        {
+          type: "text",
+          text: birthday
+        }
+      ]);
+
+      liff.closeWindow(); // ← ここで正しく閉じる
+    }
+  </script>
+</body>
+</html>
+

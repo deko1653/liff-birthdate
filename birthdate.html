@@ -44,7 +44,10 @@ async function onSubmitBirthdate() {
   }
 
   try {
-    await liff.sendMessages([{ type: "text", text: v }]);
+    alert("入力を受け取りました: " + v);
+    //ここでは送信しない
+  
+    
 
     alert("送信しました。次の案内を開きます。");
 
@@ -62,6 +65,7 @@ async function onSubmitBirthdate() {
 
 </body>
 </html>
+
 
 
 

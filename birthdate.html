@@ -19,52 +19,29 @@
 
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <script>
-const LIFF_ID = "2008860126-ZgBrn5il"; // あなたのLIFF ID
+  async function onSubmitBirthdate() {
+    const birthdate = document.getElementById("birthdate").value;
 
-async function initLiff() {
-  try {
-    await liff.init({ liffId: LIFF_ID });
-  } catch (e) {
-    alert("LIFF初期化に失敗: " + (e?.message || e));
+    if (!birthdate) {
+      alert("生年月日を入力してください");
+      return;
+    }
+
+    try {
+      await liff.init({ liffId: "2008860126-ZgBrn5il
+" });
+      liff.closeWindow(); // ← 今回はこれだけ
+    } catch (e) {
+      alert("LIFF初期化エラー: " + e.message);
+    }
   }
-}
-
-window.addEventListener("load", initLiff);
-
-async function onSubmitBirthdate() {
-  const el = document.getElementById("birthdate");
-  const v = (el?.value || "").trim();
-
-  if (!v) { alert("生年月日を入力してください"); return; }
-
-  // LINE内じゃないと送れない
-  if (!liff.isInClient()) {
-    alert("LINEアプリ内で開くと送信できます。\n入力: " + v);
-    return;
-  }
-
-  try {
-    alert("入力を受け取りました：" + v);
-// ここでは送信しない
-  
-    
-
-    alert("送信しました。次の案内を開きます。");
-
-   
-
-    // 最後に閉じたいなら（まずはOFFでOK）
-    // liff.closeWindow();
-
-  } catch (e) {
-    alert("送信に失敗しました: " + (e?.message || e));
-  }
-}
 </script>
+
 
 
 </body>
 </html>
+
 
 
 

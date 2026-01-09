@@ -4,40 +4,105 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>生年月日入力</title>
-  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-</head>
-<body>
-  <h2>生年月日を入力してください</h2>
 
-  <input type="date" id="birthdate" />
-  <br><br>
-  <button onclick="submitBirthdate()">決定</button>
+  <!-- LIFF SDK -->
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans JP", sans-serif; padding: 24px; }
+    .wrap { max-width: 520px; margin: 0 auto; }
+    h1 { font-size: 20px; margin: 0 0 16px; }
+    label { display:block; margin: 12px 0 8px; }
+    input { width: 100%; padding: 12px; font-size: 16px; box-sizing: border-box; }
+    button { margin-top: 14px; width: 100%; padding: 12px; font-size: 16px; cursor: pointer; }
+    .note { margin-top: 10px; font-size: 12px; color: #666; }
+    .err { margin-top: 10px; font-size: 13px; color: #c00; white-space: pre-wrap; }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <h1>生年月日入力</h1>
+
+    <label for="birthdate">生年月日を入力してください（例：1970-03-14）</label>
+    <input id="birthdate" type="date" />
+
+    <button id="submitBtn" disabled>決定</button>
+
+    <div class="note">
+      ※ LINEアプリ内で開くと自動で送信されます。<br/>
+      ※ 送信後はこの画面を閉じます。
+    </div>
+
+    <div id="error" class="err"></div>
+  </div>
 
   <script>
-    async function submitBirthdate() {
-      const birthday = document.getElementById("birthdate").value;
-      if (!birthday) {
-        alert("生年月日を入力してください");
-        return;
-      }
+    // ★ここだけあなたの LIFF ID に変更
+    const LIFF_ID = "2008857959-dKhasSoj";
 
-      await liff.init({ liffId: "ここにあなたのLIFF ID" });
 
-      if (!liff.isLoggedIn()) {
-        liff.login();
-        return;
-      }
+    const $birth = document.getElementById("birthdate");
+    const $btn = document.getElementById("submitBtn");
+    const $err = document.getElementById("error");
 
-      await liff.sendMessages([
-        {
-          type: "text",
-          text: birthday
-        }
-      ]);
-
-      liff.closeWindow(); // ← ここで正しく閉じる
+    function showError(msg) {
+      $err.textContent = msg || "";
     }
+
+    function isValidDateValue(v) {
+      // type="date" は基本 YYYY-MM-DD で入る
+      return typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v);
+    }
+
+    async function initLiff() {
+      try {
+        showError("");
+        await liff.init({ liffId: LIFF_ID });
+
+        // LINEアプリ内かどうか（外ブラウザでも動くように）
+        // if (!liff.isInClient()) { ... } しない。外でも送れるようにする
+
+        $btn.disabled = false;
+
+      } catch (e) {
+        showError("LIFFの初期化に失敗しました。\n" + (e && e.message ? e.message : String(e)));
+        console.error(e);
+      }
+    }
+
+    async function submit() {
+      try {
+        showError("");
+        const v = $birth.value;
+
+        if (!isValidDateValue(v)) {
+          showError("生年月日を入力してください（YYYY-MM-DD）");
+          return;
+        }
+
+        // 友だち側に送る（トークに文字として送信）
+        // ※ liff.sendMessages は LINE内（InClient）でのみ有効
+        if (liff.isInClient()) {
+          await liff.sendMessages([
+            { type: "text", text: v }
+          ]);
+
+          // 送信したら閉じる（←ここが「戻ってしまう」問題の核心）
+          liff.closeWindow();
+        } else {
+          // 外ブラウザの場合は送信できないので案内だけ出す
+          alert("LINEアプリ内で開くと送信できます。\n入力された生年月日： " + v);
+        }
+
+      } catch (e) {
+        showError("送信に失敗しました。\n" + (e && e.message ? e.message : String(e)));
+        console.error(e);
+      }
+    }
+
+    $btn.addEventListener("click", submit);
+    initLiff();
   </script>
 </body>
 </html>
-

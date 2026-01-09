@@ -17,59 +17,53 @@
 <br><br>
 <button onclick="onSubmitBirthdate()">決定</button>
 
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <script>
-// ==== あなたの既存コード ====
-function parseBirthdate(text) {
-  const t = (text || "").replace(/\u3000/g, " ").trim();
+const LIFF_ID = "2008857959-dKhasSoj"; // あなたのLIFF ID
 
-  let m = t.match(/(19\d{2}|20\d{2})\s*年\s*(\d{1,2})\s*月\s*(\d{1,2})\s*日/);
-  if (m) {
-    const y = Number(m[1]);
-    const mo = Number(m[2]);
-    const d = Number(m[3]);
-    if (isValidDateParts(y, mo, d)) return { y, m: mo, d };
+async function initLiff() {
+  try {
+    await liff.init({ liffId: LIFF_ID });
+  } catch (e) {
+    alert("LIFF初期化に失敗: " + (e?.message || e));
   }
-
-  m = t.match(/(19\d{2}|20\d{2})\s*[\/\-.]\s*(\d{1,2})\s*[\/\-.]\s*(\d{1,2})/);
-  if (m) {
-    const y = Number(m[1]);
-    const mo = Number(m[2]);
-    const d = Number(m[3]);
-    if (isValidDateParts(y, mo, d)) return { y, m: mo, d };
-  }
-
-  return null;
 }
 
-function isValidDateParts(y, mo, d) {
-  const dt = new Date(y, mo - 1, d);
-  return (
-    dt.getFullYear() === y &&
-    dt.getMonth() === mo - 1 &&
-    dt.getDate() === d
-  );
-}
+window.addEventListener("load", initLiff);
 
-// ==== 送信処理 ====
-function onSubmitBirthdate() {
-  const raw = document.getElementById("birthdate").value;
-  const parsed = parseBirthdate(raw);
+async function onSubmitBirthdate() {
+  const el = document.getElementById("birthdate");
+  const v = (el?.value || "").trim();
 
-  if (!parsed) {
-    alert("生年月日を正しく入力してください");
+  if (!v) { alert("生年月日を入力してください"); return; }
+
+  // LINE内じゃないと送れない
+  if (!liff.isInClient()) {
+    alert("LINEアプリ内で開くと送信できます。\n入力: " + v);
     return;
   }
 
-  const y = parsed.y;
-  const m = String(parsed.m).padStart(2, "0");
-  const d = String(parsed.d).padStart(2, "0");
-  const normalized = `${y}-${m}-${d}`;
+  try {
+    await liff.sendMessages([{ type: "text", text: v }]);
 
-  alert("受け取った生年月日：" + normalized);
+    alert("送信しました。次の案内を開きます。");
 
-  // 👉 ここでWebhook送信・次の質問へ
+    // ★ここを「次のURL」に変える（あとで一緒にやる）
+    liff.openWindow({
+      url: "https://example.com",
+      external: true
+    });
+
+    // 最後に閉じたいなら（まずはOFFでOK）
+    // liff.closeWindow();
+
+  } catch (e) {
+    alert("送信に失敗しました: " + (e?.message || e));
+  }
 }
 </script>
 
+
 </body>
 </html>
+

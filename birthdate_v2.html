@@ -77,6 +77,13 @@
 }
 
     init();
+alert("INIT START");
+alert(
+  "isInClient=" + liff.isInClient() + "\n" +
+  "isLoggedIn=" + liff.isLoggedIn() + "\n" +
+  "hasToken=" + !!liff.getAccessToken() + "\n" +
+  "liffId=" + LIFF_ID
+);
 
     async function onSubmitBirthdate(){
     // ✅ ログインできてなければログインに飛ばす（超重要）
@@ -86,17 +93,17 @@ if (!liff.isLoggedIn() || !liff.getAccessToken()) {
   return;
 }
   
-      alert("A: 関数に入った");
+     // alert("A: 関数に入った");
 
       try{
         let birthdate = document.getElementById("birthdate").value.trim();
-        alert("B: 入力=" + birthdate);
+      // alert("B: 入力=" + birthdate);
 
         // 8桁→YYYY-MM-DD
         if (/^\d{8}$/.test(birthdate)){
           birthdate = birthdate.slice(0,4) + "-" + birthdate.slice(4,6) + "-" + birthdate.slice(6,8);
         }
-        alert("C: 整形=" + birthdate);
+       // alert("C: 整形=" + birthdate);
 
         if (!/^\d{4}-\d{2}-\d{2}$/.test(birthdate)){
           alert("形式NG（19900101 か 1990-01-01）");
@@ -128,7 +135,7 @@ if (!liff.isLoggedIn() || !liff.getAccessToken()) {
         }
 
       }catch(err){
-        alert("X: 例外 " + (err?.message || String(err)));
+       // alert("X: 例外 " + (err?.message || String(err)));
         log("例外:\n" + (err?.message || String(err)));
       }
     }

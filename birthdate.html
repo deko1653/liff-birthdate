@@ -47,12 +47,16 @@
 
 
 
-<button id="btn" type="button" onclick="alert('HTMLクリックは反応した')">決定</button>
+<button id="btn" type="button" style="position:relative; z-index:999999;">
+  決定
+</button>
 
 
 
 
-    <pre id="log">初期化中…</pre>
+
+ <pre id="log" style="pointer-events:none;"></pre>
+   
   </div>
 
 <script>
@@ -276,6 +280,7 @@ if (!/^\d{4}-\d{2}-\d{2}$/.test(birthdate)) {
   
 </body>
 </html>
+
 
 
 

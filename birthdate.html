@@ -80,6 +80,9 @@ Channel secret
   init();
 
   async function onSubmitBirthdate(){
+  log("決定ボタン押された！", true);
+　alert("決定ボタン押された！");
+  
     btnEl.disabled = true;
 
     try{
@@ -203,6 +206,7 @@ if (!/^\d{4}-\d{2}-\d{2}$/.test(birthdate)) {
 </script>
 </body>
 </html>
+
 
 
 

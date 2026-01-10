@@ -86,23 +86,51 @@ Channel secret
   }
   init();
 
-  async function onSubmitBirthdate(){
-  log("決定ボタン押された！", true);
-　alert("決定ボタン押された！");
-  // btnEl.disabled = true;
+　async function onSubmitBirthdate(){
+  alert("A: 関数に入った");
 
+  try{
+    alert("B: try に入った");
 
-    try{
-  log("① try に入った", true);
-    
-      let birthdate = document.getElementById("birthdate").value.trim();
-// 8桁（YYYYMMDD）なら自動で YYYY-MM-DD に変換
-if (/^\d{8}$/.test(birthdate)) {
-  birthdate =
-    birthdate.slice(0, 4) + "-" +
-    birthdate.slice(4, 6) + "-" +
-    birthdate.slice(6, 8);
+    let birthdate = document.getElementById("birthdate").value.trim();
+    alert("C: birthdate取得=" + birthdate);
+
+    // 8桁なら変換
+    if (/^\d{8}$/.test(birthdate)) {
+      birthdate = birthdate.slice(0,4) + "-" + birthdate.slice(4,6) + "-" + birthdate.slice(6,8);
+    }
+    alert("D: 整形後=" + birthdate);
+
+    // 形式チェック
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(birthdate)) {
+      alert("E: 形式NG（19900101 か 1990-01-01）");
+      return;
+    }
+
+    const profile = await liff.getProfile();
+    alert("F: profile取得OK userId=" + profile.userId);
+
+    const payload = { birthdate, userId: profile.userId };
+    alert("G: payload作成OK");
+
+    const res = await fetch(GAS_WEBAPP_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    alert("H: fetch完了 status=" + res.status);
+
+    const text = await res.text();
+    alert("I: res.text()=" + text.slice(0,200)); // 長いので先頭だけ
+
+    alert("J: ここまで到達（成功か失敗かはIの内容で判断）");
+
+  } catch (err) {
+    alert("X: 例外発生: " + (err?.message || String(err)));
+  }
 }
+
 
 // 最終チェック（YYYY-MM-DD以外は止める）
 if (!/^\d{4}-\d{2}-\d{2}$/.test(birthdate)) {
@@ -224,6 +252,7 @@ if (!/^\d{4}-\d{2}-\d{2}$/.test(birthdate)) {
   
 </body>
 </html>
+
 
 
 

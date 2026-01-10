@@ -62,7 +62,14 @@
   try {
     await liff.init({ liffId: LIFF_ID });
 
-    if (!liff.isLoggedIn()) {
+    if (!liff.isLoggedIn()// ✅ idTokenを取得（accessTokenは使わない）
+const idToken = liff.getIDToken();
+if (!idToken) {
+  alert("X: idTokenが取れないのでログインします");
+  liff.login();
+  return;
+}
+) {
       liff.login();
       return;
     }
@@ -85,13 +92,13 @@ alert("INIT START");
 alert(
   "isInClient=" + liff.isInClient() + "\n" +
   "isLoggedIn=" + liff.isLoggedIn() + "\n" +
-  "hasToken=" + !!liff.getAccessToken() + "\n" +
+
   "liffId=" + LIFF_ID
 );
 
     async function onSubmitBirthdate(){
     // ✅ ログインできてなければログインに飛ばす（超重要）
-if (!liff.isLoggedIn() || !liff.getAccessToken()) {
+if (!liff.isLoggedIn() || !) {
   alert("ログインが必要なので、いったんログインします");
   liff.login();
   return;
@@ -108,6 +115,28 @@ if (!liff.isLoggedIn() || !liff.getAccessToken()) {
           birthdate = birthdate.slice(0,4) + "-" + birthdate.slice(4,6) + "-" + birthdate.slice(6,8);
         }
        // alert("C: 整形=" + birthdate);
+// 🔽 ここから追加（直後！）
+
+const idToken = liff.getIDToken();
+if (!idToken) {
+  alert("X: idTokenが取れないのでログインします");
+  liff.login();
+  return;
+}
+
+const payload = {
+  birthdate: birthdate, // ← 整形済みの値
+  idToken: idToken
+};
+
+const res = await fetch(GAS_WEBAPP_URL, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(payload)
+});
+
+const text = await res.text();
+alert("E: 応答=" + text);
 
         if (!/^\d{4}-\d{2}-\d{2}$/.test(birthdate)){
           alert("形式NG（19900101 か 1990-01-01）");
@@ -151,7 +180,7 @@ if (!liff.isLoggedIn() || !liff.getAccessToken()) {
       const info = [
         'isInClient=' + liff.isInClient(),
         'isLoggedIn=' + liff.isLoggedIn(),
-        'hasToken=' + (!!liff.getAccessToken()),
+        'hasToken=' + (!!liff.),
         'liffId=' + (window.LIFF_ID || 'n/a')
       ].join('\n');
       alert(info);

@@ -1,58 +1,164 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>生年月日入力</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>生年月日入力</title>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;padding:16px;line-height:1.5}
+    .box{max-width:520px;margin:0 auto}
+    label{display:block;margin:12px 0 6px}
+    input{width:100%;padding:12px;font-size:16px}
+    button{width:100%;padding:12px;font-size:16px;margin-top:12px;cursor:pointer}
+    pre{white-space:pre-wrap;background:#f6f6f6;border:1px solid #ddd;padding:12px;border-radius:8px;margin-top:12px}
+    .ok{color:#0a7}
+    .ng{color:#c00}
+  </style>
 </head>
 <body>
+  <div class="box">
+    <h2>生年月日を入力してください</h2>
 
-<label>生年月日を入力してください</label><br>
-<input
-  id="birthdate"
-  type="text"
-  inputmode="numeric"
-  placeholder="例）1980/2/11 または 1980-2-11"
->
-<br><br>
-<button onclick="onSubmitBirthdate()">決定</button>
+    <label for="birthdate">生年月日</label>
+    <input id="birthdate" type="date" />
 
-<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <button id="btn" onclick="onSubmitBirthdate()">決定</button>
+
+    <pre id="log">初期化中…</pre>
+  </div>
+
 <script>
-async function onSubmitBirthdate() {
-  const birthdate = document.getElementById("birthdate").value;
-  if (!birthdate) {
-    alert("生年月日を入力してください");
-    return;
+  // ★自分の値に変更
+  const LIFF_ID = "2008855555 Channel ID
+05f1d3c74f188e6575f117722101d660
+Channel secret
+
+";
+  const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwXRKrPlIuhrv60G47WPsX9g9r_LUE7b6vuPK2_RmNeoYKQaKits-tPdVBX6b2WiuYwtA/exec";
+
+  const logEl = document.getElementById("log");
+  const btnEl = document.getElementById("btn");
+
+  function log(msg, ok=false){
+    logEl.className = ok ? "ok" : "ng";
+    logEl.textContent = msg;
   }
 
-  const url = "【ここは今使っているGASのURLそのまま】";
+  async function init(){
+    try{
+      await liff.init({ liffId: LIFF_ID });
 
-  try {
-    await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ birthdate })
-    });
+      if(!liff.isLoggedIn()){
+        // 外部ブラウザで開かれた時など
+        liff.login();
+        return;
+      }
 
-    // 成功したらすぐ閉じる
-    liff.closeWindow();
-
-  } catch (e) {
-    alert("送信に失敗しました");
+      // トーク画面（LINE内）で開く前提。念のため表示
+      const profile = await liff.getProfile();
+      log(
+        "準備OK\n" +
+        "ユーザー: " + profile.displayName + "\n" +
+        "userId: " + profile.userId + "\n\n" +
+        "生年月日を入れて「決定」を押してください。",
+        true
+      );
+    }catch(err){
+      log("LIFF 初期化エラー:\n" + (err?.message || String(err)));
+    }
   }
-}
+  init();
+
+  async function onSubmitBirthdate(){
+    btnEl.disabled = true;
+
+    try{
+      const birthdate = document.getElementById("birthdate").value; // "YYYY-MM-DD"
+      if(!birthdate){
+        log("生年月日が未入力です。");
+        btnEl.disabled = false;
+        return;
+      }
+
+      const profile = await liff.getProfile();
+      const payload = {
+        birthdate,
+        userId: profile.userId,
+        // 必要なら: displayName: profile.displayName,
+        // 必要なら: timestamp: new Date().toISOString(),
+      };
+
+      log("送信中…\n" + JSON.stringify(payload, null, 2), true);
+
+      const res = await fetch(GAS_WEBAPP_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        // mode は触らない（GAS側でCORSヘッダ返す）
+      });
+
+      const text = await res.text();
+      let data;
+      try { data = JSON.parse(text); } catch { data = { raw: text }; }
+
+      if(!res.ok){
+        // HTTPステータスが 200 以外
+        log(
+          "GAS HTTPエラー: " + res.status + " " + res.statusText + "\n\n" +
+          "レスポンス:\n" + JSON.stringify(data, null, 2)
+        );
+        btnEl.disabled = false;
+        return;
+      }
+
+      if(!data || data.ok !== true){
+        // 200でも中身が失敗
+        log(
+          "GAS 失敗レスポンス\n\n" +
+          JSON.stringify(data, null, 2)
+        );
+        btnEl.disabled = false;
+        return;
+      }
+
+      // 成功：画面に最終結果を一瞬表示して閉じる
+      log(
+        "送信成功！\n" +
+        "ステラナンバー: " + data.stellaNumber + "\n\n" +
+        "この画面は自動で閉じます。",
+        true
+      );
+
+      setTimeout(() => {
+        try{
+          if(liff.isInClient()){
+            liff.closeWindow();
+          }else{
+            // 外部ブラウザ等
+            window.close();
+          }
+        }catch(e){
+          // どうしても閉じられないケース用
+          log("成功しましたが自動で閉じられませんでした。\n手動で閉じてOKです。", true);
+        }
+      }, 800);
+
+    }catch(err){
+      // fetch 自体が落ちた（ネットワーク/CORS/URLミス等）
+      log(
+        "送信に失敗しました（例外）:\n" +
+        (err?.message || String(err)) +
+        "\n\n" +
+        "よくある原因:\n" +
+        "- GAS URL が /exec でない（/devのまま）\n" +
+        "- デプロイ権限が「全員」になっていない\n" +
+        "- GAS 側でJSONパース失敗→例外\n" +
+        "- LINE push で失敗→GASがエラー返す"
+      );
+      btnEl.disabled = false;
+    }
+  }
 </script>
-
-
-
 </body>
 </html>
-
-
-
-
-
-
-
-

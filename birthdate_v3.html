@@ -1,0 +1,164 @@
+<div style="padding:10px;background:#ffeb3b;border-radius:8px;margin-bottom:10px;">
+  今見ているのは <b>v3</b> です
+</div>
+
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>生年月日入力</title>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;padding:16px;line-height:1.5}
+    .box{max-width:520px;margin:0 auto}
+    label{display:block;margin:12px 0 6px}
+    input{width:100%;padding:12px;font-size:16px}
+    button{width:100%;padding:14px;font-size:18px;margin-top:12px;cursor:pointer}
+    pre{white-space:pre-wrap;background:#f6f6f6;border:1px solid #ddd;padding:12px;border-radius:8px;margin-top:12px}
+  </style>
+</head>
+
+<body>
+  <div class="box">
+  <h2>生年月日を入力してください（v3）</h2>
+ 
+
+    <label for="birthdate">生年月日（8桁）</label>
+    <input
+      id="birthdate"
+      type="text"
+      inputmode="numeric"
+      autocomplete="off"
+      placeholder="例）19900101"
+    />
+
+    <button id="btn" type="button">決定</button>
+
+    <pre id="log">初期化中…</pre>
+  </div>
+
+  <script>
+    // ★ここだけ自分の値に置き換え
+   const LIFF_ID = "2008860126-ZgBrn5il"; // ← Aに合わせる
+
+    const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwXRKrPlIuhrv60G47WPsX9g9r_LUE7b6vuPK2_RmNeoYKQaKits-tPdVBX6b2WiuYwtA/exec";
+
+    const logEl = document.getElementById("log");
+    const btnEl = document.getElementById("btn");
+
+    function log(msg){
+      logEl.textContent = msg;
+    }
+
+    // クリックが効くか最優先で確認
+    btnEl.addEventListener("click", async () => {
+      alert("クリックOK");
+      await onSubmitBirthdate();
+    });
+
+    async function init() {
+  try {
+    await liff.init({ liffId: LIFF_ID });
+
+    if (!liff.isLoggedIn()) {
+      liff.login();
+      return;
+    }
+
+    const profile = await liff.getProfile();
+    log(
+      "準備OK\n" +
+      "ユーザー: " + profile.displayName + "\n" +
+      "userId: " + profile.userId,
+      true
+    );
+
+  } catch (err) {
+    log("LIFF 初期化エラー:\n" + (err.message || String(err)));
+  }
+}
+
+    init();
+alert("INIT START");
+alert(
+  "isInClient=" + liff.isInClient() + "\n" +
+  "isLoggedIn=" + liff.isLoggedIn() + "\n" +
+  "hasToken=" + !!liff.getAccessToken() + "\n" +
+  "liffId=" + LIFF_ID
+);
+
+    async function onSubmitBirthdate(){
+    // ✅ ログインできてなければログインに飛ばす（超重要）
+if (!liff.isLoggedIn() || !liff.getAccessToken()) {
+  alert("ログインが必要なので、いったんログインします");
+  liff.login();
+  return;
+}
+  
+     // alert("A: 関数に入った");
+
+      try{
+        let birthdate = document.getElementById("birthdate").value.trim();
+      // alert("B: 入力=" + birthdate);
+
+        // 8桁→YYYY-MM-DD
+        if (/^\d{8}$/.test(birthdate)){
+          birthdate = birthdate.slice(0,4) + "-" + birthdate.slice(4,6) + "-" + birthdate.slice(6,8);
+        }
+       // alert("C: 整形=" + birthdate);
+
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(birthdate)){
+          alert("形式NG（19900101 か 1990-01-01）");
+          return;
+        }
+
+        const profile = await liff.getProfile();
+        alert("D: profile OK");
+
+        const payload = { userId: profile.userId, birthdate };
+        log("送信中…\n" + JSON.stringify(payload));
+
+        const res = await fetch(GAS_WEBAPP_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        const text = await res.text();
+        alert("E: status=" + res.status);
+        log("GAS応答:\nstatus=" + res.status + "\n" + text);
+
+        // 成功なら閉じる（GAS側の push が飛ぶ想定）
+        if (res.ok){
+          alert("F: 送信OK → 閉じます");
+          liff.closeWindow();
+        }else{
+          alert("送信失敗（log欄を見て）");
+        }
+
+      }catch(err){
+       // alert("X: 例外 " + (err?.message || String(err)));
+        log("例外:\n" + (err?.message || String(err)));
+      }
+    }
+  </script>
+<script>
+  // 🔍 LIFFの実状態を表示（切り分け用）
+  window.addEventListener('load', async () => {
+    try {
+      const info = [
+        'isInClient=' + liff.isInClient(),
+        'isLoggedIn=' + liff.isLoggedIn(),
+        'hasToken=' + (!!liff.getAccessToken()),
+        'liffId=' + (window.LIFF_ID || 'n/a')
+      ].join('\n');
+      alert(info);
+    } catch (e) {
+      alert('LIFF状態取得エラー\n' + e);
+    }
+  });
+</script>
+  
+</body>
+</html>

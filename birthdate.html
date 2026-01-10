@@ -1,6 +1,4 @@
 <!doctype html>
-</div>
-
 <html lang="ja">
 <head>
   <meta charset="utf-8" />
@@ -8,287 +6,117 @@
   <title>生年月日入力</title>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;padding:16px;line-height:1.5}
+    body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;padding:16px;line-height:1.5}
     .box{max-width:520px;margin:0 auto}
     label{display:block;margin:12px 0 6px}
     input{width:100%;padding:12px;font-size:16px}
-    button{width:100%;padding:12px;font-size:16px;margin-top:12px;cursor:pointer}
+    button{width:100%;padding:14px;font-size:18px;margin-top:12px;cursor:pointer}
     pre{white-space:pre-wrap;background:#f6f6f6;border:1px solid #ddd;padding:12px;border-radius:8px;margin-top:12px}
-    .ok{color:#0a7}
-    .ng{color:#c00}
   </style>
 </head>
- <div style="position:fixed;left:12px;right:12px;bottom:12px;z-index:999999;">
-  <button
-    style="width:100%;padding:16px;font-size:18px;background:#111;color:#fff;border:none;border-radius:12px;"
-    onclick="alert('固定ボタン押せた！')"
-  >
- 
+
 <body>
-     <h2>生年月日を入力してください</h2>
+  <div class="box">
+    <h2>生年月日を入力してください</h2>
 
-    <label for="birthdate">生年月日</label>
-  <input
-  id="birthdate"
-  type="text"
-  inputmode="numeric"
-  autocomplete="off"
-  placeholder="例）19900101"
->
+    <label for="birthdate">生年月日（8桁）</label>
+    <input
+      id="birthdate"
+      type="text"
+      inputmode="numeric"
+      autocomplete="off"
+      placeholder="例）19900101"
+    />
 
+    <button id="btn" type="button">決定</button>
 
-<button id="btn" type="button" style="position:relative; z-index:999999;">
-  決定
-</button>
-
-
-
-
-
-
-
-   
+    <pre id="log">初期化中…</pre>
   </div>
 
-<script>
-  // ★自分の値に変更
-  const LIFF_ID = "2008855555 Channel ID
-05f1d3c74f188e6575f117722101d660
-Channel secret
+  <script>
+    // ★ここだけ自分の値に置き換え
+    const LIFF_ID = "2008857959-dKhasSoj";
+    const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwXRKrPlIuhrv60G47WPsX9g9r_LUE7b6vuPK2_RmNeoYKQaKits-tPdVBX6b2WiuYwtA/exec";
 
-";
-  const GAS_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbzBO8pmZZZ7E-p3KjG4iA4ufWiSsgQUm4f6QYyigpQ3QxB9lYH-zeJaVfGL5MpIjnJLEw/exec";
+    const logEl = document.getElementById("log");
+    const btnEl = document.getElementById("btn");
 
-  const logEl = document.getElementById("log");
-  const btnEl = document.getElementById("btn");
-
-
-  function log(msg, ok=false){
-    logEl.className = ok ? "ok" : "ng";
-    logEl.textContent = msg;
-  }
-
-  async function init(){
-    try{
-      await liff.init({ liffId: LIFF_ID });
-alert("init: liff.init OK");
-
-// ここでボタンを取り直してから登録する（重要）
-const btnEl = document.getElementById("btn");
-alert("init: btnEl=" + (btnEl ? "OK" : "NULL"));
-
-btnEl.addEventListener("click", async () => {
-  alert("クリックOK");
-  await onSubmitBirthdate();
-});
-alert("init: クリック登録OK");
-
-  if (!liff.isLoggedIn()) {
-  log("LINE内で開いてください", false);
-  return;
-}
-
-
-      // トーク画面（LINE内）で開く前提。念のため表示
-      const profile = await liff.getProfile();
-      log(
-        "準備OK\n" +
-        "ユーザー: " + profile.displayName + "\n" +
-        "userId: " + profile.userId + "\n\n" +
-        "生年月日を入れて「決定」を押してください。",
-        true
-      );
-    }catch(err){
-      log("LIFF 初期化エラー:\n" + (err?.message || String(err)));
-    }
-  }
-  init();
-
-　async function onSubmitBirthdate(){
-  alert("A: 関数に入った");
-
-  try{
-    alert("B: try に入った");
-
-    let birthdate = document.getElementById("birthdate").value.trim();
-    alert("C: birthdate取得=" + birthdate);
-
-    // 8桁なら変換
-    if (/^\d{8}$/.test(birthdate)) {
-      birthdate = birthdate.slice(0,4) + "-" + birthdate.slice(4,6) + "-" + birthdate.slice(6,8);
-    }
-    alert("D: 整形後=" + birthdate);
-
-    // 形式チェック
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(birthdate)) {
-      alert("E: 形式NG（19900101 か 1990-01-01）");
-      return;
+    function log(msg){
+      logEl.textContent = msg;
     }
 
-    const profile = await liff.getProfile();
-    alert("F: profile取得OK userId=" + profile.userId);
-
-    const payload = { birthdate, userId: profile.userId };
-    alert("G: payload作成OK");
-
-    const res = await fetch(GAS_WEBAPP_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+    // クリックが効くか最優先で確認
+    btnEl.addEventListener("click", async () => {
+      alert("クリックOK");
+      await onSubmitBirthdate();
     });
 
-    alert("H: fetch完了 status=" + res.status);
+    async function init(){
+      try{
+        log("LIFF初期化中…");
+        await liff.init({ liffId: LIFF_ID });
 
-    const text = await res.text();
-    alert("I: res.text()=" + text.slice(0,200)); // 長いので先頭だけ
-
-    alert("J: ここまで到達（成功か失敗かはIの内容で判断）");
-
-  } catch (err) {
-    alert("X: 例外発生: " + (err?.message || String(err)));
-  }
-}
-window.onSubmitBirthdate = onSubmitBirthdate;
-
-
-// 最終チェック（YYYY-MM-DD以外は止める）
-if (!/^\d{4}-\d{2}-\d{2}$/.test(birthdate)) {
-  log("生年月日は 19900101（8桁）または 1990-01-01 の形で入力してください");
-  btnEl.disabled = false;
-  return;
-}
-
-// 8桁（YYYYMMDD）なら自動で変換
-if (/^\d{8}$/.test(birthdate)) {
-  birthdate =
-    birthdate.slice(0, 4) +
-    "-" +
-    birthdate.slice(4, 6) +
-    "-" +
-    birthdate.slice(6, 8);
-}
-
-// 最終チェック
-if (!/^\d{4}-\d{2}-\d{2}$/.test(birthdate)) {
-  log("生年月日は 19900101 または 1990-01-01 の形で入力してください");
-  btnEl.disabled = false;
-  return;
-}
-
-      if(!birthdate){
-        log("生年月日が未入力です。");
-        btnEl.disabled = false;
-        return;
-      }
-
-      const profile = await liff.getProfile();
-      const payload = {
-        birthdate,
-        userId: profile.userId,
-        // 必要なら: displayName: profile.displayName,
-        // 必要なら: timestamp: new Date().toISOString(),
-      };
-
-      log("送信中…\n" + JSON.stringify(payload, null, 2), true);
-
-      const res = await fetch(GAS_WEBAPP_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-        // mode は触らない（GAS側でCORSヘッダ返す）
-      });
-
-      const text = await res.text();
-      let data;
-      try { data = JSON.parse(text); } catch { data = { raw: text }; }
-
-      if(!res.ok){
-        // HTTPステータスが 200 以外
-        log(
-          "GAS HTTPエラー: " + res.status + " " + res.statusText + "\n\n" +
-          "レスポンス:\n" + JSON.stringify(data, null, 2)
-        );
-        btnEl.disabled = false;
-        return;
-      }
-
-      if(!data || data.ok !== true){
-        // 200でも中身が失敗
-        log(
-          "GAS 失敗レスポンス\n\n" +
-          JSON.stringify(data, null, 2)
-        );
-        btnEl.disabled = false;
-        return;
-      }
-
-      // 成功：画面に最終結果を一瞬表示して閉じる
-      log(
-        "送信成功！\n" +
-        "ステラナンバー: " + data.stellaNumber + "\n\n" +
-        "この画面は自動で閉じます。",
-        true
-      );
-
-      setTimeout(() => {
-        try{
-          if(liff.isInClient()){
-            liff.closeWindow();
-          }else{
-            // 外部ブラウザ等
-            window.close();
-          }
-        }catch(e){
-          // どうしても閉じられないケース用
-          log("成功しましたが自動で閉じられませんでした。\n手動で閉じてOKです。", true);
+        // ★ここでは login() しない（暴走対策）
+        if (!liff.isLoggedIn()){
+          log("LINEアプリ内（友だち追加済）で開いてください");
+          return;
         }
-      }, 800);
 
-    }catch(err){
-      // fetch 自体が落ちた（ネットワーク/CORS/URLミス等）
-      log(
-        "送信に失敗しました（例外）:\n" +
-        (err?.message || String(err)) +
-        "\n\n" +
-        "よくある原因:\n" +
-        "- GAS URL が /exec でない（/devのまま）\n" +
-        "- デプロイ権限が「全員」になっていない\n" +
-        "- GAS 側でJSONパース失敗→例外\n" +
-        "- LINE push で失敗→GASがエラー返す"
-      );
-      btnEl.disabled = false;
+        const profile = await liff.getProfile();
+        log("準備OK\nuserId: " + profile.userId + "\n生年月日を入れて「決定」を押してください");
+      }catch(e){
+        log("初期化エラー: " + (e?.message || String(e)));
+      }
     }
-  }
-</script>
-<div style="position:fixed;left:12px;right:12px;bottom:12px;z-index:99999;">
-  <button
-    style="width:100%;padding:16px;font-size:18px;background:#111;color:#fff;border:none;border-radius:12px;"
-    onclick="alert('固定ボタン押せた！')"
-  >
-    ✅ 固定テストボタン
-  </button>
-</div>
-  
+    init();
+
+    async function onSubmitBirthdate(){
+      alert("A: 関数に入った");
+
+      try{
+        let birthdate = document.getElementById("birthdate").value.trim();
+        alert("B: 入力=" + birthdate);
+
+        // 8桁→YYYY-MM-DD
+        if (/^\d{8}$/.test(birthdate)){
+          birthdate = birthdate.slice(0,4) + "-" + birthdate.slice(4,6) + "-" + birthdate.slice(6,8);
+        }
+        alert("C: 整形=" + birthdate);
+
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(birthdate)){
+          alert("形式NG（19900101 か 1990-01-01）");
+          return;
+        }
+
+        const profile = await liff.getProfile();
+        alert("D: profile OK");
+
+        const payload = { userId: profile.userId, birthdate };
+        log("送信中…\n" + JSON.stringify(payload));
+
+        const res = await fetch(GAS_WEBAPP_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        const text = await res.text();
+        alert("E: status=" + res.status);
+        log("GAS応答:\nstatus=" + res.status + "\n" + text);
+
+        // 成功なら閉じる（GAS側の push が飛ぶ想定）
+        if (res.ok){
+          alert("F: 送信OK → 閉じます");
+          liff.closeWindow();
+        }else{
+          alert("送信失敗（log欄を見て）");
+        }
+
+      }catch(err){
+        alert("X: 例外 " + (err?.message || String(err)));
+        log("例外:\n" + (err?.message || String(err)));
+      }
+    }
+  </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -71,11 +71,11 @@ btnEl.addEventListener("click", async () => {
     try{
       await liff.init({ liffId: LIFF_ID });
 
-      if(!liff.isLoggedIn()){
-        // 外部ブラウザで開かれた時など
-        liff.login();
-        return;
-      }
+  if (!liff.isLoggedIn()) {
+  log("LINE内で開いてください", false);
+  return;
+}
+
 
       // トーク画面（LINE内）で開く前提。念のため表示
       const profile = await liff.getProfile();
@@ -259,6 +259,7 @@ if (!/^\d{4}-\d{2}-\d{2}$/.test(birthdate)) {
   
 </body>
 </html>
+
 
 
 

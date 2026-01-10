@@ -21,7 +21,14 @@
     <h2>生年月日を入力してください</h2>
 
     <label for="birthdate">生年月日</label>
-    <input id="birthdate" type="date" />
+    <input
+  id="birthdate"
+  type="text"
+  inputmode="numeric"
+  autocomplete="bday"
+  placeholder="例）19900101（8桁）"
+/>
+
 
     <button id="btn" onclick="onSubmitBirthdate()">決定</button>
 
@@ -74,7 +81,25 @@ Channel secret
     btnEl.disabled = true;
 
     try{
-      const birthdate = document.getElementById("birthdate").value; // "YYYY-MM-DD"
+      let birthdate = document.getElementById("birthdate").value.trim();
+
+// 8桁（YYYYMMDD）なら自動で変換
+if (/^\d{8}$/.test(birthdate)) {
+  birthdate =
+    birthdate.slice(0, 4) +
+    "-" +
+    birthdate.slice(4, 6) +
+    "-" +
+    birthdate.slice(6, 8);
+}
+
+// 最終チェック
+if (!/^\d{4}-\d{2}-\d{2}$/.test(birthdate)) {
+  log("生年月日は 19900101 または 1990-01-01 の形で入力してください");
+  btnEl.disabled = false;
+  return;
+}
+
       if(!birthdate){
         log("生年月日が未入力です。");
         btnEl.disabled = false;
@@ -162,4 +187,5 @@ Channel secret
 </script>
 </body>
 </html>
+
 

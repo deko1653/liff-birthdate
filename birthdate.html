@@ -56,10 +56,6 @@ Channel secret
 
   const logEl = document.getElementById("log");
   const btnEl = document.getElementById("btn");
-btnEl.addEventListener("click", async () => {
-  alert("クリックOK");
-  await onSubmitBirthdate();
-});
 
 
   function log(msg, ok=false){
@@ -70,6 +66,17 @@ btnEl.addEventListener("click", async () => {
   async function init(){
     try{
       await liff.init({ liffId: LIFF_ID });
+alert("init: liff.init OK");
+
+// ここでボタンを取り直してから登録する（重要）
+const btnEl = document.getElementById("btn");
+alert("init: btnEl=" + (btnEl ? "OK" : "NULL"));
+
+btnEl.addEventListener("click", async () => {
+  alert("クリックOK");
+  await onSubmitBirthdate();
+});
+alert("init: クリック登録OK");
 
   if (!liff.isLoggedIn()) {
   log("LINE内で開いてください", false);
@@ -259,6 +266,7 @@ if (!/^\d{4}-\d{2}-\d{2}$/.test(birthdate)) {
   
 </body>
 </html>
+
 
 
 

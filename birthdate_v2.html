@@ -133,5 +133,22 @@ if (!liff.isLoggedIn() || !liff.getAccessToken()) {
       }
     }
   </script>
+<script>
+  // 🔍 LIFFの実状態を表示（切り分け用）
+  window.addEventListener('load', async () => {
+    try {
+      const info = [
+        'isInClient=' + liff.isInClient(),
+        'isLoggedIn=' + liff.isLoggedIn(),
+        'hasToken=' + (!!liff.getAccessToken()),
+        'liffId=' + (window.LIFF_ID || 'n/a')
+      ].join('\n');
+      alert(info);
+    } catch (e) {
+      alert('LIFF状態取得エラー\n' + e);
+    }
+  });
+</script>
+  
 </body>
 </html>

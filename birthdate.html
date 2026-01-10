@@ -26,8 +26,7 @@ async function onSubmitBirthdate() {
     return;
   }
 
- const url = "https://script.google.com/macros/s/AKfycbwXKrRPluhrv60G47WPsX9g9r_LUE7b6vuPK2_RmNeoYKQaKits-tPdVBX6b2WiuYwtA/exec";
-
+  const url = "【ここは今使っているGASのURLそのまま】";
 
   try {
     await fetch(url, {
@@ -36,8 +35,9 @@ async function onSubmitBirthdate() {
       body: JSON.stringify({ birthdate })
     });
 
-    alert("送信しました。トーク画面を確認してください");
+    // 成功したらすぐ閉じる
     liff.closeWindow();
+
   } catch (e) {
     alert("送信に失敗しました");
   }
@@ -48,6 +48,7 @@ async function onSubmitBirthdate() {
 
 </body>
 </html>
+
 
 
 

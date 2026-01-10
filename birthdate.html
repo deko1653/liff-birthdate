@@ -56,10 +56,11 @@ Channel secret
 
   const logEl = document.getElementById("log");
   const btnEl = document.getElementById("btn");
-btnEl.addEventListener("click", () => {
+btnEl.addEventListener("click", async () => {
   alert("クリックOK");
-  onSubmitBirthdate();
+  await onSubmitBirthdate();
 });
+
 
   function log(msg, ok=false){
     logEl.className = ok ? "ok" : "ng";
@@ -135,6 +136,7 @@ btnEl.addEventListener("click", () => {
     alert("X: 例外発生: " + (err?.message || String(err)));
   }
 }
+window.onSubmitBirthdate = onSubmitBirthdate;
 
 
 // 最終チェック（YYYY-MM-DD以外は止める）
@@ -257,6 +259,7 @@ if (!/^\d{4}-\d{2}-\d{2}$/.test(birthdate)) {
   
 </body>
 </html>
+
 
 
 

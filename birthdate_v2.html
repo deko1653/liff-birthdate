@@ -79,6 +79,13 @@
     init();
 
     async function onSubmitBirthdate(){
+    // ✅ ログインできてなければログインに飛ばす（超重要）
+if (!liff.isLoggedIn() || !liff.getAccessToken()) {
+  alert("ログインが必要なので、いったんログインします");
+  liff.login();
+  return;
+}
+  
       alert("A: 関数に入った");
 
       try{

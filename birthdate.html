@@ -35,7 +35,7 @@
   placeholder="例）19900101"
 >
 
-/>
+
 
 
     <button id="btn" onclick="alert('クリックOK'); onSubmitBirthdate();">決定</button>
@@ -93,6 +93,8 @@ Channel secret
 
 
     try{
+  log("① try に入った", true);
+    
       let birthdate = document.getElementById("birthdate").value.trim();
 // 8桁（YYYYMMDD）なら自動で YYYY-MM-DD に変換
 if (/^\d{8}$/.test(birthdate)) {
@@ -222,6 +224,7 @@ if (!/^\d{4}-\d{2}-\d{2}$/.test(birthdate)) {
   
 </body>
 </html>
+
 
 
 

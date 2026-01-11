@@ -16,48 +16,28 @@
   <pre id="out">起動中...</pre>
 
 <script>
-  // ✅ ここだけあなたのLIFF ID（min_test用）に一致させる
-  const LIFF_ID = "2008860126-HO9WFhem";
+const LIFF_ID = "（2008860126-HO9WFhem）";
 
-  const out = document.getElementById("out");
-  const btn = document.getElementById("btn");
+async function main() {
+  const log = (s) => document.getElementById("log").textContent += s + "\n";
+  log("boot");
 
-  function p(msg){
-    out.textContent += "\n" + msg;
+  try {
+    await liff.init({ liffId: LIFF_ID });
+    log("liff.init OK");
+    log("isInClient=" + liff.isInClient());
+    log("isLoggedIn=" + liff.isLoggedIn());
+
+    document.getElementById("btn").onclick = () => {
+      alert("押した");
+      // ★必ずログインへ飛ばす
+      liff.login();
+    };
+  } catch (e) {
+    log("liff.init NG: " + e);
+    alert("init NG: " + e);
   }
-
-  window.onerror = function(message, source, lineno, colno, error){
-    p("❌ window.onerror: " + message);
-    if (error) p("error=" + error);
-  };
-
-  async function boot(){
-    out.textContent = "boot start";
-    p("sdk loaded=" + (typeof liff));
-    try{
-      await liff.init({ liffId: LIFF_ID });
-      p("✅ liff.init OK");
-      p("isInClient=" + liff.isInClient());
-      p("isLoggedIn=" + liff.isLoggedIn());
-    }catch(e){
-      p("❌ liff.init 失敗");
-      p(String(e));
-    }
-  }
-
-  btn.onclick = async () => {
-    p("---- click ----");
-    try{
-      p("isInClient=" + liff.isInClient());
-      p("isLoggedIn=" + liff.isLoggedIn());
-      // ここでは token 取得もしない（落ち所を減らす）
-      alert("クリックOK（min_test）");
-    }catch(e){
-      p("❌ click error: " + e);
-    }
-  };
-
-  boot();
+}
+main();
 </script>
-</body>
-</html>
+<pre id="log"></pre>

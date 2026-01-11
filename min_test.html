@@ -4,21 +4,60 @@
   <meta charset="utf-8">
   <title>LIFF 最小テスト</title>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    body{font-family:system-ui; padding:16px;}
+    button{font-size:18px; padding:10px 14px;}
+    pre{background:#f5f5f5; padding:10px; border-radius:8px; white-space:pre-wrap;}
+  </style>
 </head>
 <body>
-  <h2>LIFF 最小確認</h2>
+  <h2>LIFF 最小テスト</h2>
   <button id="btn">押す</button>
+  <pre id="out">起動中...</pre>
 
-  <script>
-    const LIFF_ID = "2008865403-FdrRPZfH";
+<script>
+  // ✅ ここだけあなたのLIFF ID（min_test用）に一致させる
+  const LIFF_ID = "2008865403-FdrRZfH";
 
-    async function main() {
+  const out = document.getElementById("out");
+  const btn = document.getElementById("btn");
+
+  function p(msg){
+    out.textContent += "\n" + msg;
+  }
+
+  window.onerror = function(message, source, lineno, colno, error){
+    p("❌ window.onerror: " + message);
+    if (error) p("error=" + error);
+  };
+
+  async function boot(){
+    out.textContent = "boot start";
+    p("sdk loaded=" + (typeof liff));
+    try{
       await liff.init({ liffId: LIFF_ID });
-      document.getElementById("btn").onclick = () => {
-        alert("isLoggedIn=" + liff.isLoggedIn());
-      };
+      p("✅ liff.init OK");
+      p("isInClient=" + liff.isInClient());
+      p("isLoggedIn=" + liff.isLoggedIn());
+    }catch(e){
+      p("❌ liff.init 失敗");
+      p(String(e));
     }
-    main();
-  </script>
+  }
+
+  btn.onclick = async () => {
+    p("---- click ----");
+    try{
+      p("isInClient=" + liff.isInClient());
+      p("isLoggedIn=" + liff.isLoggedIn());
+      // ここでは token 取得もしない（落ち所を減らす）
+      alert("クリックOK（min_test）");
+    }catch(e){
+      p("❌ click error: " + e);
+    }
+  };
+
+  boot();
+</script>
 </body>
 </html>

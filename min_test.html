@@ -1,0 +1,24 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>LIFF 最小テスト</title>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+</head>
+<body>
+  <h2>LIFF 最小確認</h2>
+  <button id="btn">押す</button>
+
+  <script>
+    const LIFF_ID = "2008865403-FdrRPZfH";
+
+    async function main() {
+      await liff.init({ liffId: LIFF_ID });
+      document.getElementById("btn").onclick = () => {
+        alert("isLoggedIn=" + liff.isLoggedIn());
+      };
+    }
+    main();
+  </script>
+</body>
+</html>

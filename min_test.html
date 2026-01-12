@@ -1,44 +1,69 @@
 <!doctype html>
-<html>
+<html lang="ja">
 <head>
-  <meta charset="utf-8">
-  <title>LIFF 最小テスト</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>生年月日入力</title>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <style>
     body{font-family:system-ui; padding:16px;}
-    button{font-size:18px; padding:10px 14px;}
-    pre{background:#f5f5f5; padding:10px; border-radius:8px; white-space:pre-wrap;}
+    input,button{font-size:18px; padding:10px 12px; width:100%; box-sizing:border-box;}
+    button{margin-top:10px;}
+    .box{background:#f5f5f5; padding:12px; border-radius:8px; margin-top:12px; white-space:pre-wrap;}
   </style>
 </head>
 <body>
-  <h2>LIFF 最小テスト</h2>
-  <button id="btn">押す</button>
-  <pre id="out">起動中...</pre>
+  <h2>生年月日を入力してください</h2>
+  <label>生年月日（8桁）</label>
+  <input id="birth" inputmode="numeric" placeholder="例）19700314" maxlength="8" />
+  <button id="send">決定（トークへ送る）</button>
+  <div id="out" class="box">起動中…</div>
 
 <script>
-const LIFF_ID = "2008865403-FdrRPZfH";
+  const LIFF_ID = "2008865403-FdrRPZfH"; // ←あなたの最新LIFF
 
+  const out = (msg) => document.getElementById("out").textContent = msg;
 
-async function main() {
-  const log = (s) => document.getElementById("log").textContent += s + "\n";
-  log("boot");
-
-  try {
+  async function main(){
+    out("boot start");
     await liff.init({ liffId: LIFF_ID });
-    log("liff.init OK");
-    log("isInClient=" + liff.isInClient());
-    log("isLoggedIn=" + liff.isLoggedIn());
+    out("liff.init OK\nisInClient=" + liff.isInClient() + "\nisLoggedIn=" + liff.isLoggedIn());
 
-    document.getElementById("btn").onclick = () => {
-      alert("押した");
-      // ★必ずログインへ飛ばす
+    // LINE内で開いてない/未ログインならログインへ
+    if (!liff.isLoggedIn()) {
+      out("ログインが必要なので、ログイン画面へ移動します…");
       liff.login();
-    };
-  } catch (e) {
-    log("liff.init NG: " + e);
-    alert("init NG: " + e);
+      return;
+    }
+
+    // LINE内じゃないと sendMessages はできない
+    if (!liff.isInClient()) {
+      out("これはLINE内ではなくブラウザで開かれています。\nリッチメニュー or https://liff.line.me/ から開いてください。");
+      return;
+    }
+
+    document.getElementById("send").addEventListener("click", async () => {
+      const v = document.getElementById("birth").value.trim();
+      if (!/^\d{8}$/.test(v)) {
+        alert("8桁の数字で入力してください（例：19700314）");
+        return;
+      }
+
+      // トークに送る文（Webhook側が受け取りやすい形）
+      const text = "生年月日:" + v;
+
+      try {
+        await liff.sendMessages([{ type:"text", text }]);
+        alert("送信しました！");
+        liff.closeWindow(); // 送ったら閉じる（好みで消してOK）
+      } catch (e) {
+        out("sendMessages 失敗\n" + (e?.message || e));
+        alert("送信に失敗しました。下のログを見せてください。");
+      }
+    });
   }
-}
-main();
+
+  main().catch(e => out("起動エラー\n" + (e?.message || e)));
 </script>
-<pre id="log"></pre>
+</body>
+</html>

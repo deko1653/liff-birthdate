@@ -1,41 +1,84 @@
-<!DOCTYPE html>
-<html lang="ja">
+<!doctype html>
+<html>
 <head>
-  <meta charset="utf-8">
-<title>LIFF 最小テスト 999</title> 
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>生年月日入力</title>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 </head>
 <body>
-<h2>LIFF 最小テスト 999</h2> 
-  <button onclick="main()">押す</button>
-  <pre id="out">起動前</pre>
+  <h2>生年月日を入力してください</h2>
+  <div>生年月日（8桁）</div>
+  <input id="birth" inputmode="numeric" placeholder="YYYYMMDD" value="19700314" />
+  <button onclick="submitBirth()">決定</button>
 
-<script>
-const LIFF_ID = "2008865403-FdrRPZfH";
+  <script>
+    const LIFF_ID = "2008865403-FdrRPZfH";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbxJ7hHalo4GQgnXIXRgaEa75spmsdNLZ69ei6FB-72eUHNdzTFnYr-yx_xpXuO9ymc7Vw/exec"; // 例: https://script.google.com/macros/s/XXXXX/exec
 
-async function main() {
-  const out = document.getElementById("out");
-  try {
-    out.textContent = "init中...";
-    await liff.init({ liffId: LIFF_ID });
-
-    out.textContent =
-      "init OK\n" +
-      "isInClient=" + liff.isInClient() + "\n" +
-      "isLoggedIn=" + liff.isLoggedIn();
-
-    if (!liff.isLoggedIn()) {
-      liff.login();
-      return;
+    async function ensureLogin() {
+      await liff.init({ liffId: LIFF_ID });
+      if (!liff.isLoggedIn()) {
+        // ログインさせる（これがないと access_token が取れない）
+        liff.login();
+        return false; // loginで画面遷移するのでここで止める
+      }
+      return true;
     }
 
-    const profile = await liff.getProfile();
-    out.textContent += "\nログインユーザー: " + profile.displayName;
+    function yyyymmddToDashed(s) {
+      const t = (s || "").trim();
+      if (!/^\d{8}$/.test(t)) return null;
+      return `${t.slice(0,4)}-${t.slice(4,6)}-${t.slice(6,8)}`;
+    }
 
-  } catch (e) {
-    out.textContent = "JSエラー:\n" + e;
-  }
-}
-</script>
+    async function submitBirth() {
+      // 1) ログイン保証
+      const ok = await ensureLogin();
+      if (!ok) return;
+
+      // 2) 入力→整形
+      const raw = document.getElementById("birth").value;
+      const birth = yyyymmddToDashed(raw);
+      if (!birth) { alert("8桁の生年月日で入力してね（例: 19700314）"); return; }
+
+      // 3) idToken / accessToken
+      const idToken = liff.getIDToken();
+      const accessToken = liff.getAccessToken();
+      if (!accessToken) { alert("accessTokenが取れない（ログイン未完了）"); return; }
+
+      // 4) GASに送る（任意：ここでステラ計算して返してもらう）
+      //   まずは最小：birthだけ送ってOK
+      let resultText = `受け取りました：${birth}`;
+
+      try {
+        const res = await fetch(GAS_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ birthdate: birth, idToken })
+        });
+        const txt = await res.text();
+        // GASが説明文やステラ結果を返すなら、それをそのまま使う
+        if (txt) resultText = txt;
+      } catch (e) {
+        // GAS失敗でもトークに最低限送る
+        resultText = `生年月日：${birth}\n（GAS送信エラー：${e}）`;
+      }
+
+      // 5) トークに送る（←一発で説明を出すのはここ）
+      try {
+        await liff.sendMessages([{ type: "text", text: resultText }]);
+      } catch (e) {
+        alert("トーク送信できない：" + e);
+        return;
+      }
+
+      // 6) LIFFを閉じる（戻らない）
+      liff.closeWindow();
+    }
+
+    // 起動時にinitだけしておく（ログイン必要ならログインへ）
+    ensureLogin();
+  </script>
 </body>
 </html>
